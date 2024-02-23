@@ -1,7 +1,9 @@
 SDL2_CFLAGS=$(shell sdl2-config --cflags)
 SDL2_LIBS=$(shell sdl2-config --libs)
-CXXFLAGS:=$(CXXFLAGS) $(SDL2_CFLAGS) -std=c++20 -O2
-LDFLAGS:=$(LDFLAGS) -lstdc++ -lm $(SDL2_LIBS) -lSDL2_net -lSDL2_ttf -lSDL2_gfx
+NFD_DIR?=deps/nativefiledialog-extended-1.1.1
+
+CXXFLAGS:=$(CXXFLAGS) $(SDL2_CFLAGS) -I$(NFD_DIR)/src/include -std=c++20 -O2
+LDFLAGS:=$(LDFLAGS) -lstdc++ -lm $(SDL2_LIBS) -lSDL2_net -lSDL2_ttf -lSDL2_gfx -lSDL2_image -framework Cocoa -framework UniformTypeIdentifiers
 
 BINARY?=beastem
 OBJECTS=beastem.o 			\
@@ -19,7 +21,13 @@ OBJECTS=beastem.o 			\
 
 all: $(BINARY)
 
-$(BINARY): $(OBJECTS)
+$(NFD_DIR)/Makefile: $(NFD_DIR)/CMakeLists.txt
+	cd $(NFD_DIR) && cmake .
+
+$(NFD_DIR)/src/libnfd.a: $(NFD_DIR)/Makefile
+	cd $(NFD_DIR) && make nfd
+
+$(BINARY): $(NFD_DIR)/src/libnfd.a $(OBJECTS)
 
 clean:
 	$(RM) $(BINARY) $(OBJECTS)
